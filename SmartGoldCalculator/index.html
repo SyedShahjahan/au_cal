@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Smart Gold Price Calculator (India)</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    body { /*background-color: #fffce9;*/ }
+    .container { max-width: 700px; margin-top: 40px; }
+    .result-box { background: #f5f5f5; padding: 20px; }
+    .result-box {
+      background-color: #f1f9f2;
+      padding: 1rem;
+      border: 1px solid #d4edda;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body class="bg-light">
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-6 col-md-8 col-sm-12">
+        <h2 class="mb-4 text-center">💰 Smart Gold Price Calculator (India)</h2>
+        <form id="goldForm" class="needs-validation" novalidate>
+          <div class="mb-3">
+            <label for="grams" class="form-label">Gold Weight (grams):</label>
+            <input type="text" class="form-control" id="grams" required />
+          </div>
+          <div class="mb-3">
+            <label for="goldRate" class="form-label">Today's Gold Rate (per gram):</label>
+            <input type="text" class="form-control" id="goldRate" required />
+          </div>
+          <div class="mb-3">
+            <label for="wastagePercent" class="form-label">Wastage Percentage (%):</label>
+            <input type="text" class="form-control" id="wastagePercent" value="7" />
+          </div>
+          <div class="mb-3">
+            <label for="gstPercent" class="form-label">GST Percentage (%):</label>
+            <input type="text" class="form-control" id="gstPercent" value="3" />
+          </div>
+          <div class="mb-3">
+            <label for="totalAmount" class="form-label">Final Bill Amount (₹):</label>
+            <input type="text" class="form-control" id="totalAmount" placeholder="Leave empty to calculate" />
+          </div>
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary">Calculate</button>
+          </div>
+        </form>
+
+        <div id="result" class="mt-4 result-box d-none"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('goldForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const grams = parseFloat(document.getElementById('grams').value);
+      const goldRate = parseFloat(document.getElementById('goldRate').value);
+      const wastagePercent = parseFloat(document.getElementById('wastagePercent').value || 0);
+      const gstPercent = parseFloat(document.getElementById('gstPercent').value || 0);
+      const totalAmountInput = document.getElementById('totalAmount').value;
+
+      const goldValue = grams * goldRate;
+      const makingCharge = goldValue * (wastagePercent / 100);
+      const preGSTAmount = goldValue + makingCharge;
+      const gstAmount = preGSTAmount * (gstPercent / 100);
+      const totalEstimate = preGSTAmount + gstAmount;
+
+      const resultBox = document.getElementById('result');
+      resultBox.classList.remove('d-none');
+
+      if (totalAmountInput) {
+        const totalAmount = parseFloat(totalAmountInput);
+        const gstFromTotal = (totalAmount * gstPercent) / (100 + gstPercent);
+        const amountBeforeGST = totalAmount - gstFromTotal;
+        const makingChargesActual = amountBeforeGST - goldValue;
+        const actualWastage = (makingChargesActual / goldValue) * 100;
+        const effectivePricePerGram = totalAmount / grams;
+
+        resultBox.innerHTML = `
+          <h5>📊 Breakdown from Final Amount:</h5>
+          <ul>
+            <li><strong>Pure Gold Value:</strong> ₹${goldValue.toFixed(2)}</li>
+            <li><strong>GST Extracted (@${gstPercent}%):</strong> ₹${gstFromTotal.toFixed(2)}</li>
+            <li><strong>Making + Wastage:</strong> ₹${makingChargesActual.toFixed(2)}</li>
+            <li><strong>Wastage %:</strong> ${actualWastage.toFixed(2)}%</li>
+            <li><strong>Effective Price per Gram:</strong> ₹${effectivePricePerGram.toFixed(2)}</li>
+          </ul>
+        `;
+      } else {
+        resultBox.innerHTML = `
+          <h5>💡 Estimated Final Bill:</h5>
+          <ul>
+            <li><strong>Pure Gold Value:</strong> ₹${goldValue.toFixed(2)}</li>
+            <li><strong>Wastage Charges (@${wastagePercent}%):</strong> ₹${makingCharge.toFixed(2)}</li>
+            <li><strong>GST (@${gstPercent}%):</strong> ₹${gstAmount.toFixed(2)}</li>
+            <li><strong><span class="text-success">Estimated Final Bill:</span></strong> ₹${totalEstimate.toFixed(2)}</li>
+          </ul>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>
